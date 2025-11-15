@@ -1,6 +1,7 @@
 # API keys and sensitive data
 config.js
 .env
+.api-keys
 
 # OS generated files
 .DS_Store

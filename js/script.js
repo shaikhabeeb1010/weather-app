@@ -1,15 +1,14 @@
-// API Configuration
-const API_KEY = 'ca1330cedb1bb29e9bc13b09b946daf0'; 
-const BASE_URL = 'https://api.openweathermap.org/data/2.5';
+// Secure API Key Configuration
+const API_KEY = (function() {
+    // Check if config file exists (for local development)
+    if (typeof WEATHER_APP_CONFIG !== 'undefined' && WEATHER_APP_CONFIG.API_KEY) {
+        return WEATHER_APP_CONFIG.API_KEY;
+    }
+    // Return empty for public repository (GitHub Pages)
+    return '';
+})();
 
-// DOM Elements
-const cityInput = document.getElementById('city-input');
-const searchBtn = document.getElementById('search-btn');
-const locationBtn = document.getElementById('location-btn');
-const loadingElement = document.getElementById('loading');
-const errorElement = document.getElementById('error');
-const errorMessage = document.getElementById('error-message');
-const weatherContent = document.getElementById('weather-content');
+const BASE_URL = 'https://api.openweathermap.org/data/2.5';
 
 // Weather icon mapping
 const weatherIcons = {
@@ -33,9 +32,80 @@ const weatherIcons = {
     '50n': 'fas fa-smog'
 };
 
+// DOM Elements
+const cityInput = document.getElementById('city-input');
+const searchBtn = document.getElementById('search-btn');
+const locationBtn = document.getElementById('location-btn');
+const loadingElement = document.getElementById('loading');
+const errorElement = document.getElementById('error');
+const errorMessage = document.getElementById('error-message');
+const weatherContent = document.getElementById('weather-content');
+
+// Demo data for when no API key is available
+function generateDemoData(city) {
+    const descriptions = ['clear sky', 'few clouds', 'scattered clouds', 'broken clouds', 'light rain', 'moderate rain'];
+    const icons = ['01d', '02d', '03d', '04d', '09d', '10d'];
+    const randomIndex = Math.floor(Math.random() * descriptions.length);
+    
+    return {
+        current: {
+            name: city,
+            sys: { country: 'Demo' },
+            dt: Date.now() / 1000,
+            main: {
+                temp: Math.floor(Math.random() * 30) + 10,
+                feels_like: Math.floor(Math.random() * 30) + 10,
+                humidity: Math.floor(Math.random() * 50) + 30,
+                pressure: 1013
+            },
+            weather: [{ 
+                description: descriptions[randomIndex], 
+                icon: icons[randomIndex] 
+            }],
+            wind: { speed: (Math.random() * 10 + 1).toFixed(1) }
+        },
+        forecast: {
+            list: Array.from({length: 5}, (_, i) => {
+                const dayIndex = (randomIndex + i) % descriptions.length;
+                return {
+                    dt: Date.now()/1000 + (i+1)*86400,
+                    main: { 
+                        temp: Math.floor(Math.random() * 25) + 15 
+                    },
+                    weather: [{ 
+                        description: descriptions[dayIndex],
+                        icon: icons[dayIndex]
+                    }],
+                    dt_txt: new Date(Date.now() + (i+1)*86400000).toISOString().split('T')[0] + ' 12:00:00'
+                };
+            })
+        }
+    };
+}
+
+// Add demo notice function
+function showDemoNotice() {
+    // Remove any existing notice
+    const existingNotice = document.querySelector('.demo-notice');
+    if (existingNotice) existingNotice.remove();
+    
+    const notice = document.createElement('div');
+    notice.className = 'demo-notice';
+    notice.innerHTML = `
+        <div class="notice-content">
+            <i class="fas fa-info-circle"></i>
+            <span>Showing demo data. For real weather data, add your API key in config.js</span>
+        </div>
+    `;
+    
+    // Insert after search container
+    const searchContainer = document.querySelector('.search-container');
+    searchContainer.parentNode.insertBefore(notice, searchContainer.nextSibling);
+}
+
 // Initialize the app
 document.addEventListener('DOMContentLoaded', function() {
-    // Load default city weather (New York)
+    // Load default city weather
     getWeatherByCity('New York');
     
     // Event listeners
@@ -64,8 +134,19 @@ async function getWeatherByCity(city) {
     showLoading();
     hideError();
     
+    // Use demo data if no API key is available
+    if (!API_KEY) {
+        setTimeout(() => {
+            const demoData = generateDemoData(city);
+            displayWeather(demoData.current, demoData.forecast);
+            hideLoading();
+            showDemoNotice();
+        }, 1000);
+        return;
+    }
+    
+    // Use real API if key is available
     try {
-        // Get current weather
         const currentWeatherResponse = await fetch(
             `${BASE_URL}/weather?q=${city}&units=metric&appid=${API_KEY}`
         );
@@ -75,8 +156,6 @@ async function getWeatherByCity(city) {
         }
         
         const currentWeatherData = await currentWeatherResponse.json();
-        
-        // Get forecast data
         const forecastResponse = await fetch(
             `${BASE_URL}/forecast?q=${city}&units=metric&appid=${API_KEY}`
         );
@@ -86,7 +165,6 @@ async function getWeatherByCity(city) {
         }
         
         const forecastData = await forecastResponse.json();
-        
         displayWeather(currentWeatherData, forecastData);
         
     } catch (error) {
@@ -110,8 +188,18 @@ function getWeatherByLocation() {
         async (position) => {
             const { latitude, longitude } = position.coords;
             
+            // Use demo data if no API key
+            if (!API_KEY) {
+                setTimeout(() => {
+                    const demoData = generateDemoData('Your Location');
+                    displayWeather(demoData.current, demoData.forecast);
+                    hideLoading();
+                    showDemoNotice();
+                }, 1000);
+                return;
+            }
+            
             try {
-                // Get current weather
                 const currentWeatherResponse = await fetch(
                     `${BASE_URL}/weather?lat=${latitude}&lon=${longitude}&units=metric&appid=${API_KEY}`
                 );
@@ -121,8 +209,6 @@ function getWeatherByLocation() {
                 }
                 
                 const currentWeatherData = await currentWeatherResponse.json();
-                
-                // Get forecast data
                 const forecastResponse = await fetch(
                     `${BASE_URL}/forecast?lat=${latitude}&lon=${longitude}&units=metric&appid=${API_KEY}`
                 );
@@ -132,7 +218,6 @@ function getWeatherByLocation() {
                 }
                 
                 const forecastData = await forecastResponse.json();
-                
                 displayWeather(currentWeatherData, forecastData);
                 
             } catch (error) {
@@ -233,6 +318,7 @@ function formatDate(timestamp) {
 function showLoading() {
     loadingElement.style.display = 'block';
     weatherContent.style.display = 'none';
+    hideError();
 }
 
 // Hide loading state
@@ -245,15 +331,10 @@ function showError(message) {
     errorMessage.textContent = message;
     errorElement.style.display = 'block';
     weatherContent.style.display = 'none';
+    hideLoading();
 }
 
 // Hide error message
 function hideError() {
     errorElement.style.display = 'none';
-}
-
-// Demo function to show how the app works without API key
-function demoWeather() {
-    // This is a demo function that would be replaced with actual API calls
-    console.log("Weather app functionality demonstration");
 }
