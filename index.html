@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Forecast App</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-cloud-sun"></i> Weather Forecast</h1>
+            <p>Get real-time weather updates for any location</p>
+        </header>
+
+        <div class="search-container">
+            <div class="search-box">
+                <input type="text" id="city-input" placeholder="Enter city name...">
+                <button id="search-btn"><i class="fas fa-search"></i> Search</button>
+            </div>
+            <button class="location-btn" id="location-btn">
+                <i class="fas fa-location-arrow"></i> Use My Location
+            </button>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">
+            <i class="fas fa-spinner fa-spin"></i> Loading weather data...
+        </div>
+
+        <div id="error" class="error" style="display: none;">
+            <i class="fas fa-exclamation-triangle"></i> 
+            <span id="error-message">Error message</span>
+        </div>
+
+        <main id="weather-content" style="display: none;">
+            <!-- Current Weather Section -->
+            <section class="weather-card current-weather">
+                <div class="location-info">
+                    <h2 class="location" id="location">New York, US</h2>
+                    <p class="date" id="date">Monday, January 1, 2024</p>
+                </div>
+                
+                <div class="weather-main">
+                    <div class="weather-icon" id="weather-icon">
+                        <i class="fas fa-sun"></i>
+                    </div>
+                    <div class="temperature" id="temperature">22°C</div>
+                    <div class="description" id="description">Clear Sky</div>
+                </div>
+
+                <div class="weather-details">
+                    <div class="details">
+                        <div class="detail-item">
+                            <i class="fas fa-temperature-high"></i>
+                            <div class="detail-label">Feels Like</div>
+                            <div class="detail-value" id="feels-like">24°C</div>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-tint"></i>
+                            <div class="detail-label">Humidity</div>
+                            <div class="detail-value" id="humidity">65%</div>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-wind"></i>
+                            <div class="detail-label">Wind Speed</div>
+                            <div class="detail-value" id="wind-speed">5.5 km/h</div>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-compress-arrows-alt"></i>
+                            <div class="detail-label">Pressure</div>
+                            <div class="detail-value" id="pressure">1013 hPa</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Forecast Section -->
+            <section class="weather-card forecast">
+                <h3>5-Day Forecast</h3>
+                <div class="forecast-container" id="forecast-container">
+                    <!-- Forecast items will be dynamically inserted here -->
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>Weather data provided by OpenWeatherMap API</p>
+            <p>&copy; 2024 Weather Forecast App. Built with HTML, CSS & JavaScript.</p>
+        </footer>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="js/script.js"></script>
+</body>
+</html>
